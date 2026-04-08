@@ -1,68 +1,22 @@
-# SEM / LSA Planning MVP
+# SEM Planning Client Form (Internal)
 
-Mobile-first Next.js MVP that productizes the old PowerPoint/email workflow into a complete internal builder + public client wizard for LSA onboarding and planning.
+This project is an internal web form workflow for XMS Ai.
 
-## What the app does
+It replaces PowerPoint + email back-and-forth with a structured SEM/LSA planning flow where:
+- the SEM team prepares planning proposals internally,
+- clients complete the required information step by step,
+- the team reviews one consolidated submission.
 
-- Internal SEM team can create and edit planning proposals from `/admin`.
-- Generates and previews public client URLs like `/client/[slug]`.
-- Client completes a polished 10-step wizard (services, budget, geo, assets, hours, bio categories, review, submit).
-- Final submit changes session status to `submitted` in local mock state.
-- Includes seeded demo content for **Gutter Guardians** based on the provided PPT example.
+## Internal Use Notice
 
-## Stack
+This application is for **internal use only** at **XMS Ai** and is exclusive to the internal SEM team processes.
+
+## Tech Stack
 
 - Next.js (App Router)
 - React + TypeScript
 - Tailwind CSS
-- shadcn/ui-style components
+- shadcn/ui components
+- react-hook-form + zod
 - lucide-react
-- react-hook-form
-- zod
-
-## Install and run
-
-```bash
-npm install
-npm run dev
-```
-
-Open: [http://localhost:3000](http://localhost:3000)
-
-## Key routes
-
-- `/` -> redirects to `/demo`
-- `/demo` -> redirects to seeded demo client flow
-- `/admin` -> admin dashboard and planning list
-- `/admin/planning/new` -> create new planning
-- `/admin/planning/[id]` -> edit internal planning builder
-- `/client/[slug]` -> public client wizard
-
-## Data and persistence model (mock)
-
-- Seed data lives in:
-  - `/mock-data/clients.ts`
-  - `/mock-data/planning.ts`
-- Types live in:
-  - `/types/planning.ts`
-- Local mock state store:
-  - `/lib/store.tsx`
-- State is persisted to browser `localStorage` for MVP behavior.
-
-## What is mocked vs. real-later
-
-### Mocked now
-
-- No backend/database
-- No authentication
-- File uploads are local file-input simulation only
-- Public links are local app routes
-
-### Real implementation later
-
-- API + database persistence
-- Auth and role permissions
-- Cloud file storage
-- Email/SMS notifications
-- Analytics/event tracking
 
