@@ -2,8 +2,31 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, TriangleAlert } from "lucide-react";
+import { 
+  CheckCircle2, 
+  TriangleAlert, 
+  ArrowLeft, 
+  ArrowRight, 
+  Send,
+  User,
+  Briefcase,
+  DollarSign,
+  MapPin,
+  Camera,
+  Clock,
+  Type,
+  Megaphone,
+  Lightbulb,
+  Flag,
+  Sparkles,
+  Upload,
+  Image as ImageIcon,
+  MessageSquare,
+  ClipboardCheck
+} from "lucide-react";
 import { useForm } from "react-hook-form";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 import { AdsPreviewCard } from "@/components/wizard/ads-preview-card";
 import { BioCategorySelector } from "@/components/wizard/bio-category-selector";
@@ -23,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { DAY_LABELS } from "@/lib/utils";
 import { REVIEW_SECTIONS, WIZARD_STEPS } from "@/lib/wizard-config";
 import {
@@ -57,6 +81,7 @@ export function ClientWizard({
   onSaveDraft,
   onSubmitFinal
 }: ClientWizardProps) {
+  const { width, height } = useWindowSize();
   const [currentStep, setCurrentStep] = useState(1);
   const [stepError, setStepError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(session.status === "submitted");
@@ -200,19 +225,44 @@ export function ClientWizard({
 
   if (submitted) {
     return (
-      <div className="mx-auto flex min-h-screen w-full max-w-xl items-center px-4 py-6">
-        <Card className="w-full border-emerald-200 bg-emerald-50">
-          <CardContent className="space-y-4 p-5 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-            <div>
-              <h2 className="text-lg font-semibold">Submission complete</h2>
-              <p className="text-sm text-muted-foreground">
-                Thank you. Your planning review for {client.name} was submitted successfully.
+      <div className="mx-auto flex min-h-screen w-full max-w-xl items-center px-4 py-8 animate-in fade-in zoom-in-95 duration-700">
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={150}
+          recycle={false}
+          colors={['#10b981', '#3b82f6', '#06b6d4', '#8b5cf6']}
+        />
+        <Card className="premium-card w-full overflow-hidden border-none relative z-10 shadow-2xl">
+          <div className="h-2.5 w-full bg-gradient-to-r from-emerald-400 to-teal-500" />
+          <CardContent className="space-y-6 p-8 text-center">
+            <div className="relative mx-auto h-24 w-24">
+              <div className="absolute inset-0 animate-ping rounded-full bg-emerald-100 opacity-75" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 line-tight">Submission Complete!</h2>
+              <p className="text-base text-slate-500 leading-relaxed px-4">
+                Thank you for your feedback. Your planning review for <span className="font-bold text-slate-900 border-b-2 border-emerald-200">{client.name}</span> has been successfully submitted.
               </p>
             </div>
-            <Button type="button" variant="outline" onClick={() => setSubmitted(false)}>
-              Reopen review
-            </Button>
+            
+            <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100">
+              <p className="text-xs text-slate-600 font-medium italic text-center">
+                "Our team will review your responses and reach out shortly to finalize the LSA launch details."
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4">
+              <Button type="button" className="w-full bg-slate-900 h-12 text-base font-bold" onClick={() => window.close()}>
+                Close Window
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-600 font-medium" onClick={() => setSubmitted(false)}>
+                Review my answers
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -233,12 +283,12 @@ export function ClientWizard({
       }
       onBack={currentStep > 1 ? handleBack : undefined}
       onNext={handleNext}
-      nextLabel={currentStep === 10 ? "Submit" : "Continue"}
+      nextLabel={currentStep === 10 ? "Submit and Process" : "Continue"}
     >
       {stepError ? (
         <Card className="border-amber-300 bg-amber-50">
-          <CardContent className="flex items-center gap-2 p-3 text-sm text-amber-900">
-            <TriangleAlert className="h-4 w-4" />
+          <CardContent className="flex items-center gap-2 p-3 text-sm text-amber-900 font-medium">
+            <TriangleAlert className="h-4 w-4 text-amber-600 shrink-0" />
             {stepError}
           </CardContent>
         </Card>
@@ -249,12 +299,19 @@ export function ClientWizard({
           title="Welcome to your LSA planning review"
           description="This workflow replaces email back-and-forth so we can finalize your setup faster."
         >
-          <p className="text-sm text-muted-foreground">{session.proposal.kpiContext}</p>
-          <div className="grid gap-2">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-slate-700 underline decoration-primary/30 underline-offset-4 tracking-tight">Introduction</span>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed italic">{session.proposal.kpiContext}</p>
+          <div className="grid gap-3 pt-2">
             {session.proposal.kpiBlocks.map((kpi) => (
-              <div key={kpi.id} className="rounded-xl border bg-white p-3">
-                <p className="text-sm font-medium">{kpi.title}</p>
-                <p className="text-xs text-muted-foreground">{kpi.description}</p>
+              <div key={kpi.id} className="rounded-xl border bg-white p-4 shadow-sm border-slate-100 hover:border-primary/20 transition-all group">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary group-hover:animate-pulse" />
+                  <p className="text-sm font-bold text-slate-800">{kpi.title}</p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{kpi.description}</p>
               </div>
             ))}
           </div>
@@ -262,99 +319,104 @@ export function ClientWizard({
       ) : null}
 
       {currentStep === 2 ? (
-        <CompactStepCard title="Services" description="Review selected and recommended services.">
+        <CompactStepCard title="Services Review" description="Review selected and recommended services.">
+          <div className="flex items-center gap-2 mb-2">
+            <Briefcase className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Confirmed Services</span>
+          </div>
           <ServiceCardList
             selected={session.proposal.services.selected}
             recommended={session.proposal.services.recommended}
           />
-
-          <DecisionCardGroup
-            decision={values.services.decision}
-            onDecisionChange={(value) =>
-              setValue("services.decision", value, { shouldDirty: true, shouldValidate: true })
-            }
-            comment={values.services.comment}
-            onCommentChange={(value) =>
-              setValue("services.comment", value, { shouldDirty: true, shouldValidate: true })
-            }
-          />
-        </CompactStepCard>
-      ) : null}
-
-      {currentStep === 3 ? (
-        <CompactStepCard title="Budget & Bidding" description="Confirm plan and request adjustments if needed.">
-          <BudgetSummaryCard budget={session.proposal.budget} />
-
-          <DecisionCardGroup
-            decision={values.budget.decision}
-            onDecisionChange={(value) =>
-              setValue("budget.decision", value, { shouldDirty: true, shouldValidate: true })
-            }
-            comment={values.budget.comment}
-            onCommentChange={(value) =>
-              setValue("budget.comment", value, { shouldDirty: true, shouldValidate: true })
-            }
-          />
-
-          <div className="grid gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Requested budget note (optional)</p>
-            <Textarea
-              value={values.budget.requestedBudgetNote || ""}
-              onChange={(event) =>
-                setValue("budget.requestedBudgetNote", event.target.value, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                })
+          <div className="pt-4">
+            <DecisionCardGroup
+              decision={values.services.decision}
+              onDecisionChange={(value) =>
+                setValue("services.decision", value, { shouldDirty: true, shouldValidate: true })
+              }
+              comment={values.services.comment}
+              onCommentChange={(value) =>
+                setValue("services.comment", value, { shouldDirty: true, shouldValidate: true })
               }
             />
           </div>
         </CompactStepCard>
       ) : null}
 
+      {currentStep === 3 ? (
+        <CompactStepCard title="Budget & Bidding" description="Confirm plan and request adjustments if needed.">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Campaign Investment</span>
+          </div>
+          <BudgetSummaryCard budget={session.proposal.budget} />
+          <div className="pt-4 space-y-6">
+            <DecisionCardGroup
+              decision={values.budget.decision}
+              onDecisionChange={(value) =>
+                setValue("budget.decision", value, { shouldDirty: true, shouldValidate: true })
+              }
+              comment={values.budget.comment}
+              onCommentChange={(value) =>
+                setValue("budget.comment", value, { shouldDirty: true, shouldValidate: true })
+              }
+            />
+            <div className="grid gap-2 p-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Requested budget note (optional)</Label>
+              <Textarea
+                placeholder="Ex: I want to start with a lower budget for the first 2 weeks..."
+                value={values.budget.requestedBudgetNote || ""}
+                onChange={(event) =>
+                  setValue("budget.requestedBudgetNote", event.target.value, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  })
+                }
+                className="bg-white"
+              />
+            </div>
+          </div>
+        </CompactStepCard>
+      ) : null}
+
       {currentStep === 4 ? (
         <CompactStepCard title="Geo Target" description="Confirm and adjust preferred target areas.">
-          <div className="rounded-xl border bg-secondary/40 p-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Location Strategy</span>
+          </div>
+          <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 text-sm text-slate-700 leading-relaxed">
+            <span className="font-bold flex items-center gap-1.5 mb-0.5">
+              <Lightbulb className="h-3.5 w-3.5 text-primary" /> Recommendation:
+            </span>
             {session.proposal.geoTarget.recommendation}
           </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Preferred areas</p>
-            <GeoTargetSelector
-              locations={session.proposal.geoTarget.visibleLocations}
-              selected={values.geoTarget.preferredLocations}
-              onToggle={(location) => {
-                const selected = values.geoTarget.preferredLocations;
-                const next = selected.includes(location)
-                  ? selected.filter((item) => item !== location)
-                  : [...selected, location];
-                setValue("geoTarget.preferredLocations", next, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            />
-          </div>
-
-          <DecisionCardGroup
-            decision={values.geoTarget.decision}
-            onDecisionChange={(value) =>
-              setValue("geoTarget.decision", value, { shouldDirty: true, shouldValidate: true })
-            }
-            comment={values.geoTarget.comment}
-            onCommentChange={(value) =>
-              setValue("geoTarget.comment", value, { shouldDirty: true, shouldValidate: true })
-            }
-          />
-
-          <div className="grid gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Adjustment note (optional)</p>
-            <Textarea
-              value={values.geoTarget.note || ""}
-              onChange={(event) =>
-                setValue("geoTarget.note", event.target.value, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                })
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-slate-700">Preferred areas</p>
+              <GeoTargetSelector
+                locations={session.proposal.geoTarget.visibleLocations}
+                selected={values.geoTarget.preferredLocations}
+                onToggle={(location) => {
+                  const selected = values.geoTarget.preferredLocations;
+                  const next = selected.includes(location)
+                    ? selected.filter((item) => item !== location)
+                    : [...selected, location];
+                  setValue("geoTarget.preferredLocations", next, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              />
+            </div>
+            <DecisionCardGroup
+              decision={values.geoTarget.decision}
+              onDecisionChange={(value) =>
+                setValue("geoTarget.decision", value, { shouldDirty: true, shouldValidate: true })
+              }
+              comment={values.geoTarget.comment}
+              onCommentChange={(value) =>
+                setValue("geoTarget.comment", value, { shouldDirty: true, shouldValidate: true })
               }
             />
           </div>
@@ -363,91 +425,82 @@ export function ClientWizard({
 
       {currentStep === 5 ? (
         <CompactStepCard title="Photos & Assets" description="Upload or simulate required files.">
-          <div className="space-y-2">
+          <div className="flex items-center gap-2 mb-2">
+            <Camera className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Brand Identity</span>
+          </div>
+          <div className="space-y-3">
             {session.proposal.assetRequirements.map((item) => (
-              <div key={item.id} className="rounded-xl border bg-white p-3">
-                <p className="text-sm font-semibold">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.instructions}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Format: {item.acceptedFileTypes.join(", ")} | Max {item.maxSizeMb} MB | Min {item.minResolution}
+              <div key={item.id} className="rounded-xl border bg-white p-3 shadow-sm hover:border-slate-300 transition-all">
+                <p className="text-sm font-bold text-slate-800">{item.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{item.instructions}</p>
+                <p className="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">
+                  {item.acceptedFileTypes.join(", ")} · Max {item.maxSizeMb} MB · Min {item.minResolution}
                 </p>
               </div>
             ))}
           </div>
-
-          <UploadDropzoneOrInput
-            label="Upload logo"
-            helper="Local preview only for MVP"
-            onFiles={(files) =>
-              setValue("assets.logoFileName", files[0] || "", {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
-
-          <UploadDropzoneOrInput
-            label="Upload business photos"
-            helper="You can upload multiple files"
-            multiple
-            onFiles={(files) =>
-              setValue("assets.photos", files, {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
-
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">
-              Logo: {values.assets.logoFileName || "No file selected"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Photos: {values.assets.photos.length > 0 ? values.assets.photos.join(", ") : "No files selected"}
-            </p>
+          <div className="space-y-4 pt-4">
+            <UploadDropzoneOrInput
+              label="Upload logo"
+              helper="SVG or PNG with transparent background preferred"
+              onFiles={(files) =>
+                setValue("assets.logoFileName", files[0] || "", {
+                  shouldDirty: true,
+                  shouldValidate: true
+                })
+              }
+            />
+            <UploadDropzoneOrInput
+              label="Upload business photos"
+              helper="Interior, exterior, projects, or team"
+              multiple
+              onFiles={(files) =>
+                setValue("assets.photos", files, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                })
+              }
+            />
           </div>
-
-          <Textarea
-            placeholder="Comments about uploads"
-            value={values.assets.comment || ""}
-            onChange={(event) =>
-              setValue("assets.comment", event.target.value, {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
         </CompactStepCard>
       ) : null}
 
       {currentStep === 6 ? (
         <CompactStepCard title="Business Hours" description="Confirm daily schedule and weekend/holiday notes.">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Operation Schedule</span>
+          </div>
           <BusinessHoursEditor
             hours={values.businessHours}
             onChange={(hours) =>
               setValue("businessHours", hours, { shouldDirty: true, shouldValidate: true })
             }
           />
-
-          <Textarea
-            placeholder="Weekend and holiday note"
-            value={values.hoursNotes || ""}
-            onChange={(event) =>
-              setValue("hoursNotes", event.target.value, {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
-
-          {errors.businessHours ? (
-            <p className="text-xs text-destructive">Please verify open/close times for open days.</p>
-          ) : null}
+          <div className="grid gap-2 mt-6">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Weekend and holiday note</Label>
+            <Textarea
+              placeholder="Ex: We are usually closed on national holidays..."
+              value={values.hoursNotes || ""}
+              onChange={(event) =>
+                setValue("hoursNotes", event.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                })
+              }
+              className="bg-white"
+            />
+          </div>
         </CompactStepCard>
       ) : null}
 
       {currentStep === 7 ? (
-        <CompactStepCard title="Business Bio" description="Choose only 6 categories.">
+        <CompactStepCard title="Business Bio" description="Choose at least one category that best fits your business.">
+          <div className="flex items-center gap-2 mb-2">
+            <Type className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Market Positioning</span>
+          </div>
           <BioCategorySelector
             options={session.proposal.businessBioOptions}
             selected={values.businessBioSelection}
@@ -458,178 +511,137 @@ export function ClientWizard({
               })
             }
           />
-          {errors.businessBioSelection ? (
-            <p className="text-xs text-destructive">{errors.businessBioSelection.message}</p>
-          ) : null}
         </CompactStepCard>
       ) : null}
 
       {currentStep === 8 ? (
-        <CompactStepCard title="Ads Preview" description="Preview style and leave optional feedback.">
+        <CompactStepCard title="Ads Preview" description="Preview of how your business will appear in search results.">
+          <div className="flex items-center gap-2 mb-2">
+            <Megaphone className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Visual Identity</span>
+          </div>
           <AdsPreviewCard note={session.proposal.adsPreviewNote} />
-          <Textarea
-            placeholder="Optional ad preview feedback"
-            value={values.adsPreviewComment || ""}
-            onChange={(event) =>
-              setValue("adsPreviewComment", event.target.value, {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
+          <div className="grid gap-2 mt-6">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Feedback or changes</Label>
+            <Textarea
+              placeholder="I'd like to change the tagline to..."
+              value={values.adsPreviewComment || ""}
+              onChange={(event) =>
+                setValue("adsPreviewComment", event.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                })
+              }
+              className="bg-white"
+            />
+          </div>
         </CompactStepCard>
       ) : null}
 
       {currentStep === 9 ? (
-        <CompactStepCard
-          title="Recommendations & Missing Info"
-          description="Review recommendations and provide required pending information."
-        >
-          <div className="space-y-2 rounded-xl border bg-secondary/40 p-3">
-            <p className="text-sm font-medium">SEM Team Recommendations</p>
-            <ul className="space-y-1 text-xs text-muted-foreground">
-              {session.proposal.recommendations.map((item) => (
-                <li key={item}>- {item}</li>
-              ))}
-            </ul>
+        <CompactStepCard title="Final Checklist" description="Review recommendations and provide missing information.">
+          <div className="flex items-center gap-2 mb-2">
+            <ClipboardCheck className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Pending Items</span>
           </div>
-
-          <MissingInfoForm
-            items={session.proposal.missingInfoChecklist}
-            values={values.missingInfoResponses}
-            acknowledged={values.acknowledgedMissingItems}
-            onValueChange={(id, value) => {
-              setValue(
-                "missingInfoResponses",
-                {
-                  ...values.missingInfoResponses,
-                  [id]: value
-                },
-                {
-                  shouldDirty: true,
-                  shouldValidate: true
-                }
-              );
-            }}
-            onAcknowledgedChange={(items) =>
-              setValue("acknowledgedMissingItems", items, {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          />
-
-          <Textarea
-            placeholder="Any additional final comments"
-            {...register("finalComment")}
-          />
+          <div className="space-y-4">
+            <div className="space-y-2 rounded-xl border border-secondary bg-secondary/20 p-4">
+              <p className="text-sm font-bold text-slate-800">SEM Team Recommendations</p>
+              <ul className="space-y-1.5">
+                {session.proposal.recommendations.map((item) => (
+                  <li key={item} className="flex gap-2 text-xs text-slate-600">
+                    <span className="text-primary font-bold">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <MissingInfoForm
+              items={session.proposal.missingInfoChecklist}
+              values={values.missingInfoResponses}
+              acknowledged={values.acknowledgedMissingItems}
+              onValueChange={(id, value) => {
+                setValue(
+                  "missingInfoResponses",
+                  { ...values.missingInfoResponses, [id]: value },
+                  { shouldDirty: true, shouldValidate: true }
+                );
+              }}
+              onAcknowledgedChange={(items) =>
+                setValue("acknowledgedMissingItems", items, { shouldDirty: true, shouldValidate: true })
+              }
+            />
+            <div className="grid gap-2 pt-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Final comments</Label>
+              <Textarea
+                placeholder="Anything else we should know?"
+                {...register("finalComment")}
+                className="bg-white"
+              />
+            </div>
+          </div>
         </CompactStepCard>
       ) : null}
 
       {currentStep === 10 ? (
-        <CompactStepCard
-          title="Review & Submit"
-          description="Confirm every section. Use Edit to jump back to any step."
-        >
-          {REVIEW_SECTIONS.map((section) => (
-            <ReviewSectionCard
-              key={section.id}
-              title={section.title}
-              onEdit={() => setCurrentStep(SECTION_TO_STEP[section.id])}
-            >
-              {section.id === "services" ? (
-                <>
-                  <p>Decision: {values.services.decision}</p>
-                  <p>Comment: {values.services.comment || "No comment"}</p>
-                </>
-              ) : null}
+        <CompactStepCard title="Review & Submit" description="Verify all sections before finalizing.">
+          <div className="flex items-center gap-2 mb-2">
+            <Flag className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Final Step</span>
+          </div>
+          <div className="space-y-4">
+            {REVIEW_SECTIONS.map((section) => (
+              <ReviewSectionCard
+                key={section.id}
+                title={section.title}
+                onEdit={() => setCurrentStep(SECTION_TO_STEP[section.id])}
+              >
+                <div className="text-xs space-y-1">
+                  {section.id === "services" && (
+                    <p className="font-medium text-slate-700">Decision: <span className="text-primary font-bold">{values.services.decision}</span></p>
+                  )}
+                  {section.id === "budget" && (
+                    <p className="font-medium text-slate-700">Decision: <span className="text-primary font-bold">{values.budget.decision}</span></p>
+                  )}
+                  {section.id === "geo" && (
+                    <p className="font-medium text-slate-700">Decision: <span className="text-primary font-bold">{values.geoTarget.decision}</span></p>
+                  )}
+                  {section.id === "assets" && (
+                    <p className="font-medium text-slate-700">Logo: <span className="text-primary font-bold">{values.assets.logoFileName || "Default"}</span></p>
+                  )}
+                  {section.id === "hours" && (
+                    <p className="font-medium text-slate-700">Schedule: <span className="text-primary font-bold">Updated</span></p>
+                  )}
+                  {section.id === "bio" && (
+                    <p className="font-medium text-slate-700">Selection: <span className="text-primary font-bold">{values.businessBioSelection.length} categories</span></p>
+                  )}
+                  {section.id === "ads" && (
+                    <p className="font-medium text-slate-700">Feedback: <span className="text-primary font-bold">{values.adsPreviewComment ? "Provided" : "None"}</span></p>
+                  )}
+                  {section.id === "recommendations" && (
+                    <p className="font-medium text-slate-700">Status: <span className="text-primary font-bold">Checked</span></p>
+                  )}
+                </div>
+              </ReviewSectionCard>
+            ))}
+          </div>
 
-              {section.id === "budget" ? (
-                <>
-                  <p>Decision: {values.budget.decision}</p>
-                  <p>Requested note: {values.budget.requestedBudgetNote || "None"}</p>
-                  <p>Comment: {values.budget.comment || "No comment"}</p>
-                </>
-              ) : null}
-
-              {section.id === "geo" ? (
-                <>
-                  <p>Decision: {values.geoTarget.decision}</p>
-                  <p>Preferred: {values.geoTarget.preferredLocations.join(", ") || "None"}</p>
-                  <p>Comment: {values.geoTarget.comment || "No comment"}</p>
-                </>
-              ) : null}
-
-              {section.id === "assets" ? (
-                <>
-                  <p>Logo: {values.assets.logoFileName || "Not uploaded"}</p>
-                  <p>Photos: {values.assets.photos.join(", ") || "Not uploaded"}</p>
-                  <p>Comment: {values.assets.comment || "No comment"}</p>
-                </>
-              ) : null}
-
-              {section.id === "hours" ? (
-                <>
-                  {values.businessHours.map((hour) => (
-                    <p key={hour.day}>
-                      {DAY_LABELS[hour.day]}: {hour.isClosed ? "Closed" : `${hour.openTime} - ${hour.closeTime}`}
-                    </p>
-                  ))}
-                  <p>Notes: {values.hoursNotes || "No notes"}</p>
-                </>
-              ) : null}
-
-              {section.id === "bio" ? (
-                <>
-                  <p>
-                    Selected: {values.businessBioSelection.length} / 6
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {values.businessBioSelection.map((id) => {
-                      const option = session.proposal.businessBioOptions.find((item) => item.id === id);
-                      return (
-                        <Badge key={id} variant="secondary">
-                          {option?.label || id}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : null}
-
-              {section.id === "ads" ? <p>{values.adsPreviewComment || "No feedback"}</p> : null}
-
-              {section.id === "recommendations" ? (
-                <>
-                  <p>
-                    Acknowledged: {values.acknowledgedMissingItems.length} / {session.proposal.missingInfoChecklist.length}
-                  </p>
-                  {session.proposal.missingInfoChecklist.map((item) => (
-                    <p key={item.id}>
-                      {item.label}: {String(values.missingInfoResponses[item.id] ?? "") || "Pending"}
-                    </p>
-                  ))}
-                  <p>Final comment: {values.finalComment || "None"}</p>
-                </>
-              ) : null}
-            </ReviewSectionCard>
-          ))}
-
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="space-y-3 p-4">
-              <p className="text-sm font-medium">Ready to submit?</p>
-              <p className="text-xs text-muted-foreground">
-                Submitting marks this planning as complete in local mock state.
+          <div className="mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
+            <div className="bg-primary/10 p-2 rounded-full mt-0.5">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-slate-900 tracking-tight">Ready to launch</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                By clicking "Submit and Process", you authorize Xperience Ai to proceed with these campaign settings. 
+                You can still request changes via chat or email after submission.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </CompactStepCard>
       ) : null}
 
       <input type="hidden" {...register("introAcknowledged")} />
-      <Input type="hidden" {...register("services.decision")} />
-      <Input type="hidden" {...register("budget.decision")} />
-      <Input type="hidden" {...register("geoTarget.decision")} />
     </WizardLayout>
   );
 }

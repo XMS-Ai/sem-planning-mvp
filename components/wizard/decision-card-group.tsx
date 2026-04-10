@@ -27,20 +27,21 @@ export function DecisionCardGroup({
         onValueChange={(value) => onDecisionChange(value as "accept" | "request_changes")}
         className="grid gap-2"
       >
-        <Card className="flex items-center gap-3 p-3">
+        <Card className="flex items-center gap-3 p-4">
           <RadioGroupItem value="accept" id="accept" />
-          <Label htmlFor="accept" className="cursor-pointer">
+          <Label htmlFor="accept" className="cursor-pointer flex-1 py-1">
             Accept as proposed
           </Label>
         </Card>
 
-        <Card className="flex items-center gap-3 p-3">
+        <Card className="flex items-center gap-3 p-4">
           <RadioGroupItem value="request_changes" id="request_changes" />
-          <Label htmlFor="request_changes" className="cursor-pointer">
+          <Label htmlFor="request_changes" className="cursor-pointer flex-1 py-1">
             {requestLabel}
           </Label>
         </Card>
       </RadioGroup>
+
 
       <Textarea
         value={comment ?? ""}

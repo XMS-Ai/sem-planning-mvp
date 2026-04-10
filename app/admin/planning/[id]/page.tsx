@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
 import { AdminPlanningForm } from "@/components/admin/admin-planning-form";
+import { ClientResponseView } from "@/components/admin/client-response-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { builderValuesToProposal, sessionToBuilderValues } from "@/lib/planning-mappers";
 import { usePlanningStore } from "@/lib/store";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import { PlanningBuilderValues } from "@/lib/validators";
 
 const statusLabel = {
@@ -21,10 +22,13 @@ const statusLabel = {
 export default function AdminPlanningDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<"proposal" | "results">("proposal");
   const {
     hydrated,
     getSessionById,
     getClientById,
+    isSlugAvailable,
     updateClient,
     updateSessionProposal,
     updateSessionResponse
@@ -54,12 +58,20 @@ export default function AdminPlanningDetailPage() {
     );
   }
 
+  const isSlugLocked = session.status !== "draft";
+
   const handleSubmit = (values: PlanningBuilderValues) => {
     const nextSlug = slugify(values.slug || values.clientName);
 
+    // If slug changed, check if it's available
+    if (nextSlug !== client.slug && !isSlugAvailable(nextSlug, client.id)) {
+      alert("This slug is already taken by another client. Please choose a different one.");
+      return;
+    }
+
     updateClient(client.id, {
       name: values.clientName,
-      slug: nextSlug,
+      slug: isSlugLocked ? client.slug : nextSlug,
       logoUrl: values.logoUrl || undefined
     });
 
@@ -84,20 +96,72 @@ export default function AdminPlanningDetailPage() {
       filteredResponse,
       session.status === "draft" ? "in_review" : session.status
     );
+
+    setIsSuccess(true);
+    setTimeout(() => setIsSuccess(false), 2500);
+  };
+
+  const handleCancel = () => {
+    if (window.confirm("Are you sure you want to discard unsaved changes and return to the dashboard?")) {
+      router.push("/admin");
+    }
   };
 
   return (
     <AppShell
       title={`Planning Builder · ${client.name}`}
       subtitle="Edit proposal content and publish the client-facing wizard link."
-      rightSlot={<Badge>{statusLabel[session.status]}</Badge>}
+      rightSlot={
+        <div className="flex bg-slate-100/80 p-1 rounded-xl backdrop-blur-sm border border-slate-200 shadow-inner">
+          <button
+            onClick={() => setActiveTab("proposal")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
+              activeTab === "proposal" ? "bg-white text-primary shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            <Laptop className="h-3.5 w-3.5" />
+            Proposal
+          </button>
+          <button
+            onClick={() => setActiveTab("results")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
+              activeTab === "results" ? "bg-white text-primary shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Results
+          </button>
+        </div>
+      }
     >
-      <AdminPlanningForm
-        defaultValues={defaultValues}
-        onSubmit={handleSubmit}
-        publicPath={`/client/${client.slug}`}
-        onPreview={() => window.open(`/client/${client.slug}`, "_blank")}
-      />
+      <div className="mb-6">
+        <Button asChild variant="link" className="p-0 h-auto text-slate-500 hover:text-primary transition-colors text-xs font-semibold">
+          <Link href="/admin">
+            <ChevronLeft className="mr-1 h-3 w-3" />
+            Back to Dashboard
+          </Link>
+        </Button>
+      </div>
+
+      <div className="space-y-6">
+        {activeTab === "proposal" ? (
+          <AdminPlanningForm
+            defaultValues={defaultValues}
+            onSubmit={handleSubmit}
+            publicPath={`/client/${client.slug}`}
+            onPreview={() => window.open(`/client/${client.slug}`, "_blank")}
+            onCancel={handleCancel}
+            isSlugLocked={isSlugLocked}
+            isSuccess={isSuccess}
+          />
+        ) : (
+          <ClientResponseView session={session} client={client} />
+        )}
+      </div>
     </AppShell>
+
   );
 }
+

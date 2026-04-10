@@ -11,12 +11,15 @@ import { usePlanningStore } from "@/lib/store";
 import { slugify } from "@/lib/utils";
 import { PlanningBuilderValues } from "@/lib/validators";
 
+import { ChevronLeft } from "lucide-react";
+
 export default function NewPlanningPage() {
   const router = useRouter();
   const { sessions, getClientById, createPlanning, updateSessionProposal, updateSessionResponse } =
     usePlanningStore();
 
   const initialValues = useMemo<PlanningBuilderValues>(() => {
+    // ... logic remains same
     const templateSession = sessions[0];
     const templateClient = templateSession ? getClientById(templateSession.clientId) : undefined;
 
@@ -65,15 +68,35 @@ export default function NewPlanningPage() {
     router.push(`/admin/planning/${session.id}`);
   };
 
+  const handleCancel = () => {
+    if (window.confirm("Are you sure you want to cancel the creation of this new planning? Any information entered will be lost.")) {
+      router.push("/admin");
+    }
+  };
+
+
   return (
     <AppShell
       title="Create New Planning"
       subtitle="Prepare a client-ready LSA workflow from your internal SEM proposal."
-      rightSlot={
-        <Button variant="outline" onClick={() => router.push("/admin")}>Back to admin</Button>
-      }
     >
-      <AdminPlanningForm defaultValues={initialValues} onSubmit={handleSubmit} submitLabel="Create planning" />
+      <div className="mb-6">
+        <Button asChild variant="link" className="p-0 h-auto text-slate-500 hover:text-primary transition-colors text-xs font-semibold">
+          <Link href="/admin">
+            <ChevronLeft className="mr-1 h-3 w-3" />
+            Back to Dashboard
+          </Link>
+        </Button>
+      </div>
+
+      <AdminPlanningForm 
+        defaultValues={initialValues} 
+        onSubmit={handleSubmit} 
+        onCancel={handleCancel}
+        submitLabel="Create planning session" 
+      />
+
+
     </AppShell>
   );
 }

@@ -2,9 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Eye, Save } from "lucide-react";
+import { Eye, Save, X, Check, Info, Briefcase, DollarSign, MapPin, ClipboardCheck, Zap, Link as LinkIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { GeneratedPublicUrlCard } from "@/components/admin/generated-public-url-card";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +23,9 @@ interface AdminPlanningFormProps {
   submitLabel?: string;
   publicPath?: string;
   onPreview?: () => void;
+  onCancel?: () => void;
+  isSlugLocked?: boolean;
+  isSuccess?: boolean;
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -33,7 +38,10 @@ export function AdminPlanningForm({
   onSubmit,
   submitLabel = "Save Planning",
   publicPath,
-  onPreview
+  onPreview,
+  onCancel,
+  isSlugLocked = false,
+  isSuccess = false
 }: AdminPlanningFormProps) {
   const form = useForm<PlanningBuilderValues>({
     resolver: zodResolver(planningBuilderSchema),
@@ -44,158 +52,229 @@ export function AdminPlanningForm({
   const { register, handleSubmit, formState } = form;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 pb-20 md:grid-cols-[1fr_320px]">
-      <div className="space-y-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">1. Basic Client Info</CardTitle>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 pb-20 md:grid-cols-[1fr_340px]">
+      <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-700">
+        <Card className="premium-card">
+          <CardHeader className="pb-3 border-b border-slate-100/50 mb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <Info className="h-4 w-4 text-primary" />
+              1. Basic Client Info
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="clientName">Company name</Label>
-              <Input id="clientName" {...register("clientName")} />
+          <CardContent className="grid gap-4">
+            <div className="grid gap-3">
+              <Label htmlFor="clientName" className="text-xs font-semibold uppercase text-slate-500">Company name</Label>
+              <Input id="clientName" {...register("clientName")} className="bg-white/50" />
               <FieldError message={formState.errors.clientName?.message} />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="slug">Public slug</Label>
-              <Input id="slug" {...register("slug")} />
+            <div className="grid gap-3">
+              <Label htmlFor="slug" className="flex items-center justify-between text-xs font-semibold uppercase text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <LinkIcon className="h-3 w-3" />
+                  Public slug
+                </span>
+                {isSlugLocked && (
+                  <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-muted-foreground">
+                    Locked (link already shared)
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="slug"
+                {...register("slug")}
+                disabled={isSlugLocked}
+                className={isSlugLocked ? "bg-slate-50 cursor-not-allowed opacity-70" : "bg-white/50"}
+              />
               <FieldError message={formState.errors.slug?.message} />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="logoUrl">Logo URL</Label>
-              <Input id="logoUrl" placeholder="https://..." {...register("logoUrl")} />
+
+            <div className="grid gap-3">
+              <Label htmlFor="logoUrl" className="text-xs font-semibold uppercase text-slate-500">Logo URL</Label>
+              <Input id="logoUrl" placeholder="https://..." {...register("logoUrl")} className="bg-white/50" />
               <FieldError message={formState.errors.logoUrl?.message} />
             </div>
+
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">2. Services</CardTitle>
+        <Card className="premium-card">
+          <CardHeader className="pb-3 border-b border-slate-100/50 mb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <Briefcase className="h-4 w-4 text-primary" />
+              2. Services
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label>Selected services</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Selected services</Label>
               <Textarea
                 {...register("selectedServicesText")}
                 placeholder="One service per line"
+                className="bg-white/50 min-h-[120px]"
               />
               <FieldError message={formState.errors.selectedServicesText?.message} />
             </div>
             <div className="grid gap-2">
-              <Label>Recommended services</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Recommended services</Label>
               <Textarea
                 {...register("recommendedServicesText")}
                 placeholder="One service per line"
+                className="bg-white/50 min-h-[100px]"
               />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">3. Budget & Bidding</CardTitle>
+        <Card className="premium-card">
+          <CardHeader className="pb-3 border-b border-slate-100/50 mb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <DollarSign className="h-4 w-4 text-primary" />
+              3. Budget & Bidding
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <CardContent className="grid gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
-                <Label>Weekly budget</Label>
-                <Input type="number" {...register("weeklyBudget")} />
+                <Label className="text-xs font-semibold uppercase text-slate-500">Weekly budget</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input type="number" {...register("weeklyBudget")} className="pl-7 bg-white/50" />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label>Monthly budget</Label>
-                <Input type="number" {...register("monthlyBudget")} />
+                <Label className="text-xs font-semibold uppercase text-slate-500">Monthly budget</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input type="number" {...register("monthlyBudget")} className="pl-7 bg-white/50" />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label>Minimum required budget</Label>
-                <Input type="number" {...register("minimumRequiredBudget")} />
+                <Label className="text-xs font-semibold uppercase text-slate-500">Min. req budget</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input type="number" {...register("minimumRequiredBudget")} className="pl-7 bg-white/50" />
+                </div>
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label>Budget recommendation note</Label>
-              <Textarea {...register("budgetNote")} />
+            <div className="grid gap-2 mt-2">
+              <Label className="text-xs font-semibold uppercase text-slate-500">Budget recommendation note</Label>
+              <Textarea {...register("budgetNote")} className="bg-white/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">4. Geo Target</CardTitle>
+        <Card className="premium-card">
+          <CardHeader className="pb-3 border-b border-slate-100/50 mb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <MapPin className="h-4 w-4 text-primary" />
+              4. Geo Target
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label>Geo recommendation</Label>
-              <Textarea {...register("geoRecommendation")} />
+              <Label className="text-xs font-semibold uppercase text-slate-500">Geo recommendation</Label>
+              <Textarea {...register("geoRecommendation")} className="bg-white/50" />
             </div>
             <div className="grid gap-2">
-              <Label>Visible target locations</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Visible target locations</Label>
               <Textarea
                 {...register("locationsText")}
                 placeholder="One location per line"
+                className="bg-white/50 min-h-[100px]"
               />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">5. Assets, Bio, Ads & Checklist</CardTitle>
+        <Card className="premium-card">
+          <CardHeader className="pb-3 border-b border-slate-100/50 mb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+              5. Final Details & Checklist
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label>Asset instructions</Label>
-              <Textarea {...register("assetInstructionsText")} />
+              <Label className="text-xs font-semibold uppercase text-slate-500">Asset instructions</Label>
+              <Textarea {...register("assetInstructionsText")} className="bg-white/50" />
             </div>
             <div className="grid gap-2">
-              <Label>Business bio options</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Business bio options</Label>
               <Textarea
                 {...register("businessBioOptionsText")}
                 placeholder="One option per line"
+                className="bg-white/50"
               />
             </div>
             <div className="grid gap-2">
-              <Label>Ads preview note</Label>
-              <Textarea {...register("adsPreviewNote")} />
+              <Label className="text-xs font-semibold uppercase text-slate-500">Ads preview note</Label>
+              <Textarea {...register("adsPreviewNote")} className="bg-white/50" />
             </div>
             <div className="grid gap-2">
-              <Label>Recommendations and comments</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Recommendations</Label>
               <Textarea
                 {...register("recommendationsText")}
                 placeholder="One recommendation per line"
+                className="bg-white/50"
               />
             </div>
             <div className="grid gap-2">
-              <Label>Missing information requested</Label>
+              <Label className="text-xs font-semibold uppercase text-slate-500">Missing information</Label>
               <Textarea
                 {...register("missingInfoText")}
                 placeholder="One item per line"
+                className="bg-white/50"
               />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <aside className="space-y-4 md:sticky md:top-4 md:h-fit">
-        {publicPath ? <GeneratedPublicUrlCard publicPath={publicPath} /> : null}
+      <aside className="space-y-6 md:sticky md:top-6 md:h-fit animate-in fade-in slide-in-from-right-4 duration-700 delay-100 fill-mode-both">
+        {publicPath ? (
+          <div className="p-0.5 bg-gradient-to-br from-primary/30 to-blue-500/30 rounded-[calc(var(--radius)+2px)]">
+            <GeneratedPublicUrlCard publicPath={publicPath} />
+          </div>
+        ) : null}
 
-        <Card>
+        <Card className="premium-card border-primary/10 overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-primary to-blue-400" />
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Actions</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm font-bold text-slate-700">
+              <Zap className="h-4 w-4 text-primary fill-primary/10" />
+              Actions
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
-              <Save className="mr-2 h-4 w-4" />
-              {submitLabel}
+          <CardContent className="space-y-3">
+            <Button 
+              type="submit" 
+              className={cn(
+                "w-full transition-all active:scale-[0.98] font-bold",
+                isSuccess ? "bg-emerald-600 hover:bg-emerald-600 shadow-emerald-200" : "bg-primary hover:bg-primary/90 shadow-primary/20"
+              )}
+              disabled={formState.isSubmitting}
+            >
+              {isSuccess ? <Check className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              {isSuccess ? "Changes saved" : submitLabel}
             </Button>
             {onPreview ? (
-              <Button type="button" variant="outline" className="w-full" onClick={onPreview}>
-                <Eye className="mr-2 h-4 w-4" />
-                Preview client flow
+              <Button type="button" variant="outline" className="w-full bg-white transition-all active:scale-[0.98] font-medium border-slate-200" onClick={onPreview}>
+                <Eye className="mr-2 h-4 w-4 text-slate-500" />
+                Preview Flow
               </Button>
             ) : null}
-            <p className="text-xs text-muted-foreground">
-              Changes are stored in local mock state for this MVP.
-            </p>
+            {onCancel ? (
+              <Button type="button" variant="ghost" className="w-full text-muted-foreground hover:text-destructive font-medium" onClick={onCancel}>
+                <X className="mr-2 h-4 w-4 text-slate-400" />
+                Cancel & Return
+              </Button>
+            ) : null}
+
+            <div className="pt-2">
+              <p className="text-[10px] text-center text-muted-foreground leading-tight px-2">
+                Changes are encrypted and stored in local state for this MVP session.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </aside>

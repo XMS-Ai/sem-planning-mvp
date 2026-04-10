@@ -26,7 +26,13 @@ import { slugify, uid } from "@/lib/utils";
 
 const STORAGE_KEY = "sem_planning_mvp_state_v1";
 
-const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+const clone = <T,>(value: T): T => {
+  try {
+    return structuredClone(value);
+  } catch {
+    return JSON.parse(JSON.stringify(value)) as T;
+  }
+};
 
 interface PlanningStoreContextValue {
   clients: Client[];
@@ -35,6 +41,7 @@ interface PlanningStoreContextValue {
   getClientById: (id: string) => Client | undefined;
   getSessionById: (id: string) => PlanningSession | undefined;
   getSessionBySlug: (slug: string) => PlanningSession | undefined;
+  isSlugAvailable: (slug: string, excludeClientId?: string) => boolean;
   updateClient: (clientId: string, patch: Partial<Client>) => void;
   createPlanning: (input: NewPlanningInput) => PlanningSession;
   updateSessionProposal: (sessionId: string, proposal: PlanningProposal) => void;
@@ -105,6 +112,15 @@ export function PlanningStoreProvider({ children }: { children: ReactNode }) {
     [clients, sessions]
   );
 
+  const isSlugAvailable = useCallback(
+    (slug: string, excludeClientId?: string) => {
+      return !clients.some(
+        (client) => client.slug === slug && client.id !== excludeClientId
+      );
+    },
+    [clients]
+  );
+
   const updateClient = useCallback((clientId: string, patch: Partial<Client>) => {
     setClients((prev) =>
       prev.map((client) => (client.id === clientId ? { ...client, ...patch } : client))
@@ -113,11 +129,20 @@ export function PlanningStoreProvider({ children }: { children: ReactNode }) {
 
   const createPlanning = useCallback(
     (input: NewPlanningInput) => {
-      const normalizedSlug = slugify(input.slug || input.clientName);
+      const baseSlug = slugify(input.slug || input.clientName);
+      let uniqueSlug = baseSlug;
+      let counter = 1;
+
+      // Ensure slug is unique
+      while (clients.some((c) => c.slug === uniqueSlug)) {
+        uniqueSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
       const client: Client = {
         id: uid("client"),
         name: input.clientName,
-        slug: normalizedSlug,
+        slug: uniqueSlug,
         logoUrl: input.logoUrl || undefined
       };
 
@@ -137,8 +162,9 @@ export function PlanningStoreProvider({ children }: { children: ReactNode }) {
 
       return session;
     },
-    []
+    [clients]
   );
+
 
   const updateSessionProposal = useCallback(
     (sessionId: string, proposal: PlanningProposal) => {
@@ -212,7 +238,8 @@ export function PlanningStoreProvider({ children }: { children: ReactNode }) {
       updateSessionProposal,
       updateSessionResponse,
       submitSession,
-      resetSeedData
+      resetSeedData,
+      isSlugAvailable
     }),
     [
       clients,
@@ -226,8 +253,10 @@ export function PlanningStoreProvider({ children }: { children: ReactNode }) {
       updateSessionProposal,
       updateSessionResponse,
       submitSession,
-      resetSeedData
+      resetSeedData,
+      isSlugAvailable
     ]
+
   );
 
   return (
