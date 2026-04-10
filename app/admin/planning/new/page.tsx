@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
 import { AdminPlanningForm } from "@/components/admin/admin-planning-form";
