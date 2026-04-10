@@ -34,7 +34,6 @@ export default function AdminPage() {
 
   return (
     <AppShell
-      title="Admin Dashboard"
       subtitle="Create and manage LSA planning proposals before sharing with clients."
       rightSlot={
         <div className="flex gap-2">
