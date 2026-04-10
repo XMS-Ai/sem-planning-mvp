@@ -1,7 +1,9 @@
 import ClientPage from "./client-page";
+import { seededClients } from "@/mock-data/clients";
 
 export function generateStaticParams() {
-  return [{ slug: "demo" }];
+  const clientSlugs = seededClients.map((c) => ({ slug: c.slug }));
+  return [{ slug: "demo" }, ...clientSlugs];
 }
 
 export default function Page() {

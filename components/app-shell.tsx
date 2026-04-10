@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
@@ -27,11 +28,12 @@ export function AppShell({
           <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-8">
             <div className="flex flex-col items-center md:items-start text-center md:text-left gap-6">
               {/* Logo - Larger and crisp */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/logo.png" 
-                alt="XMS Logo" 
-                className="h-20 md:h-24 w-auto object-contain transition-transform hover:scale-105 duration-500" 
+              <Image
+                src="/logo.png"
+                alt="XMS Logo"
+                width={200}
+                height={96}
+                className="h-20 md:h-24 w-auto object-contain transition-transform hover:scale-105 duration-500"
               />
               
               <div className="space-y-3">

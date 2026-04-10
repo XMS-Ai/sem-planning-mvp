@@ -1,7 +1,9 @@
 import ClientPage from "./client-page";
+import { seededSessions } from "@/mock-data/planning";
 
 export function generateStaticParams() {
-  return [{ id: "demo" }];
+  const sessionIds = seededSessions.map((s) => ({ id: s.id }));
+  return [{ id: "demo" }, ...sessionIds];
 }
 
 export default function Page() {
