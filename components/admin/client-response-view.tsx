@@ -1,15 +1,14 @@
-import { CheckCircle2, MessageSquare, MapPin, DollarSign, Clock, FileText, Image as ImageIcon } from "lucide-react";
-import { PlanningSession, Client } from "@/types/planning";
+import { CheckCircle2, MessageSquare, MapPin, DollarSign, FileText, Image as ImageIcon } from "lucide-react";
+import { PlanningSession } from "@/types/planning";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 interface ClientResponseViewProps {
   session: PlanningSession;
-  client: Client;
 }
 
-export function ClientResponseView({ session, client }: ClientResponseViewProps) {
+export function ClientResponseView({ session }: ClientResponseViewProps) {
   const { response, proposal } = session;
 
   return (
@@ -44,7 +43,7 @@ export function ClientResponseView({ session, client }: ClientResponseViewProps)
               </div>
               {response.services.comment && (
                 <p className="mt-2 text-sm text-slate-600 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
-                  "{response.services.comment}"
+                  &quot;{response.services.comment}&quot;
                 </p>
               )}
             </div>
@@ -64,7 +63,7 @@ export function ClientResponseView({ session, client }: ClientResponseViewProps)
                 </div>
               )}
               {response.budget.comment && (
-                <p className="mt-2 text-sm text-slate-600 italic">"{response.budget.comment}"</p>
+                <p className="mt-2 text-sm text-slate-600 italic">&quot;{response.budget.comment}&quot;</p>
               )}
             </div>
           </CardContent>
@@ -135,7 +134,7 @@ export function ClientResponseView({ session, client }: ClientResponseViewProps)
             {response.assets.comment && (
               <div className="md:col-span-2">
                 <Label className="text-[10px] uppercase text-muted-foreground font-bold">Asset Comments</Label>
-                <p className="text-sm italic text-slate-600 mt-1">"{response.assets.comment}"</p>
+                <p className="text-sm italic text-slate-600 mt-1">&quot;{response.assets.comment}&quot;</p>
               </div>
             )}
           </CardContent>
@@ -181,7 +180,7 @@ export function ClientResponseView({ session, client }: ClientResponseViewProps)
               <div>
                 <Label className="text-[10px] uppercase text-muted-foreground font-bold">Final Client Comment</Label>
                 <p className="mt-1 p-3 bg-slate-900 text-slate-100 rounded-2xl text-sm italic leading-relaxed">
-                  "{response.finalComment}"
+                  &quot;{response.finalComment}&quot;
                 </p>
               </div>
             )}

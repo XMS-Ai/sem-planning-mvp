@@ -5,9 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { 
   CheckCircle2, 
   TriangleAlert, 
-  ArrowLeft, 
-  ArrowRight, 
-  Send,
   User,
   Briefcase,
   DollarSign,
@@ -19,9 +16,6 @@ import {
   Lightbulb,
   Flag,
   Sparkles,
-  Upload,
-  Image as ImageIcon,
-  MessageSquare,
   ClipboardCheck
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -41,13 +35,10 @@ import { ServiceCardList } from "@/components/wizard/service-card-list";
 import { UploadDropzoneOrInput } from "@/components/wizard/upload-dropzone-or-input";
 import { WizardLayout } from "@/components/wizard/wizard-layout";
 import { ReviewSectionCard } from "@/components/review/review-section-card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DAY_LABELS } from "@/lib/utils";
 import { REVIEW_SECTIONS, WIZARD_STEPS } from "@/lib/wizard-config";
 import {
   clientResponseSchema,
@@ -98,8 +89,7 @@ export function ClientWizard({
     trigger,
     getValues,
     register,
-    reset,
-    formState: { errors }
+    reset
   } = form;
 
   useEffect(() => {
@@ -251,7 +241,7 @@ export function ClientWizard({
             
             <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100">
               <p className="text-xs text-slate-600 font-medium italic text-center">
-                "Our team will review your responses and reach out shortly to finalize the LSA launch details."
+                &quot;Our team will review your responses and reach out shortly to finalize the LSA launch details.&quot;
               </p>
             </div>
 
@@ -633,7 +623,7 @@ export function ClientWizard({
             <div className="space-y-1">
               <p className="text-sm font-bold text-slate-900 tracking-tight">Ready to launch</p>
               <p className="text-xs text-slate-500 leading-relaxed">
-                By clicking "Submit and Process", you authorize Xperience Ai to proceed with these campaign settings. 
+                By clicking &quot;Submit and Process&quot;, you authorize Xperience Ai to proceed with these campaign settings. 
                 You can still request changes via chat or email after submission.
               </p>
             </div>
