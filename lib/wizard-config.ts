@@ -43,20 +43,27 @@ export const WIZARD_STEPS: WizardStep[] = [
     title: "Business Bio",
     description: "Choose up to 6 categories"
   },
+  // Ajuste #9 — Nueva ventana: información de equipo (fieldworkers)
   {
     id: 8,
+    section: "team",
+    title: "Team Information",
+    description: "Tell us about your active field team"
+  },
+  {
+    id: 9,
     section: "ads",
     title: "Ads Preview",
     description: "Leave optional ad feedback"
   },
   {
-    id: 9,
+    id: 10,
     section: "recommendations",
-    title: "Recommendations",
-    description: "Complete missing information"
+    title: "SEM Team Recommendations",
+    description: "Notes and recommendations from our SEM team"
   },
   {
-    id: 10,
+    id: 11,
     section: "review",
     title: "Review & Submit",
     description: "Final check before submission"
@@ -95,13 +102,18 @@ export const REVIEW_SECTIONS: ReviewSection[] = [
     description: "Selected categories"
   },
   {
+    id: "team",
+    title: "Team Information",
+    description: "Field team size"
+  },
+  {
     id: "ads",
     title: "Ads Preview",
     description: "Feedback for ad style"
   },
   {
     id: "recommendations",
-    title: "Missing Info",
-    description: "Checklist acknowledgements and values"
+    title: "SEM Team Recommendations",
+    description: "Notes from the SEM team"
   }
 ];

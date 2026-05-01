@@ -124,49 +124,18 @@ const gutterGuardiansProposal: PlanningSession["proposal"] = {
     "Expand service areas where possible.",
     "Complete the Google background check process as soon as possible."
   ],
+  // Ajuste #12 — Eliminadas duplicaciones. Estos items ya se solicitan en pasos dedicados:
+  //   - images-logo             → step 5 (Photos & Assets)
+  //   - total-fieldworkers      → step 8 (Team Information)
+  //   - weekend-hours           → step 6 (Business Hours / hoursNotes)
+  //   - business-bio-categories → step 7 (Business Bio)
   missingInfoChecklist: [
-    {
-      id: "images-logo",
-      label: "Images and logo",
-      description: "Upload assets used for profile and ad creatives.",
-      required: true,
-      fieldType: "checkbox"
-    },
-    {
-      id: "total-fieldworkers",
-      label: "Total number of fieldworkers",
-      description: "How many team members are active in field service.",
-      required: true,
-      fieldType: "number"
-    },
     {
       id: "extended-service-area",
       label: "Extended service area",
       description: "List additional cities/counties you can cover.",
-      required: true,
+      required: false,
       fieldType: "text"
-    },
-    {
-      id: "weekend-hours",
-      label: "Weekend business hours",
-      description: "Confirm Saturday and Sunday schedule.",
-      required: true,
-      fieldType: "text"
-    },
-    {
-      id: "business-bio-categories",
-      label: "Business bio categories",
-      description: "Choose the 6 categories you prefer in the profile.",
-      required: true,
-      fieldType: "multiselect",
-      options: [
-        "24/7 emergency service",
-        "Free Estimate",
-        "Family-owned & operated",
-        "References available",
-        "Full warranty",
-        "Professional service"
-      ]
     }
   ]
 };

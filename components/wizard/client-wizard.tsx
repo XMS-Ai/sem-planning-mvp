@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  CheckCircle2, 
-  TriangleAlert, 
+import {
+  CheckCircle2,
+  TriangleAlert,
   User,
+  Users,
   Briefcase,
   DollarSign,
   MapPin,
@@ -29,7 +30,6 @@ import { BusinessHoursEditor } from "@/components/wizard/business-hours-editor";
 import { CompactStepCard } from "@/components/wizard/compact-step-card";
 import { DecisionCardGroup } from "@/components/wizard/decision-card-group";
 import { GeoTargetSelector } from "@/components/wizard/geo-target-selector";
-import { MissingInfoForm } from "@/components/wizard/missing-info-form";
 import { MobileStepHeader } from "@/components/wizard/mobile-step-header";
 import { ServiceCardList } from "@/components/wizard/service-card-list";
 import { UploadDropzoneOrInput } from "@/components/wizard/upload-dropzone-or-input";
@@ -53,6 +53,8 @@ interface ClientWizardProps {
   onSubmitFinal: (values: ClientResponseFormValues) => void;
 }
 
+// Ajuste #9 — Se inserta el paso "team" (fieldworkers) en posición 8.
+//             Ads, recommendations y review se desplazan +1.
 const SECTION_TO_STEP: Record<ProposalSection, number> = {
   overview: 1,
   services: 2,
@@ -61,10 +63,15 @@ const SECTION_TO_STEP: Record<ProposalSection, number> = {
   assets: 5,
   hours: 6,
   bio: 7,
-  ads: 8,
-  recommendations: 9,
-  review: 10
+  team: 8,
+  ads: 9,
+  recommendations: 10,
+  review: 11
 };
+
+// Constante única para el total de pasos del wizard.
+// Si cambia, actualizar SECTION_TO_STEP arriba.
+const TOTAL_STEPS = 11;
 
 export function ClientWizard({
   client,
@@ -100,11 +107,6 @@ export function ClientWizard({
   const values = watch();
 
   const currentStepMeta = WIZARD_STEPS[currentStep - 1];
-
-  const requiredMissingItems = useMemo(
-    () => session.proposal.missingInfoChecklist.filter((item) => item.required),
-    [session.proposal.missingInfoChecklist]
-  );
 
   const validateStep = async () => {
     setStepError(null);
@@ -149,43 +151,23 @@ export function ClientWizard({
       return true;
     }
 
+    // Ajuste #9 — Step 8: Team Information (fieldworkers). Validación de número >= 1.
     if (currentStep === 8) {
+      const value = Number(getValues("missingInfoResponses.totalFieldworkers") ?? 0);
+      if (!value || Number.isNaN(value) || value < 1) {
+        setStepError("Please enter the total number of fieldworkers (1 or more).");
+        return false;
+      }
+      return true;
+    }
+
+    // Ads Preview (renumerado a 9)
+    if (currentStep === 9) {
       return trigger(["adsPreviewComment"]);
     }
 
-    if (currentStep === 9) {
-      const valid = await trigger([
-        "acknowledgedMissingItems",
-        "missingInfoResponses",
-        "finalComment"
-      ]);
-      if (!valid) return false;
-
-      const snapshot = getValues();
-      const missingRequired = requiredMissingItems.find((item) => {
-        const value = snapshot.missingInfoResponses[item.id];
-        const acknowledged = snapshot.acknowledgedMissingItems.includes(item.id);
-
-        if (item.fieldType === "checkbox") {
-          return !Boolean(value) && !acknowledged;
-        }
-
-        if (typeof value === "number") {
-          return Number.isNaN(value) || value <= 0;
-        }
-
-        if (Array.isArray(value)) {
-          return value.length === 0;
-        }
-
-        return String(value ?? "").trim().length === 0;
-      });
-
-      if (missingRequired) {
-        setStepError(`Please complete required item: ${missingRequired.label}`);
-        return false;
-      }
-
+    // Ajuste #7 — el step 10 solo muestra recomendaciones del SEM team (sin formulario)
+    if (currentStep === 10) {
       return true;
     }
 
@@ -204,13 +186,14 @@ export function ClientWizard({
     const snapshot = getValues();
     onSaveDraft(snapshot);
 
-    if (currentStep === 10) {
+    // El último paso ahora es TOTAL_STEPS (Review & Submit)
+    if (currentStep === TOTAL_STEPS) {
       onSubmitFinal(snapshot);
       setSubmitted(true);
       return;
     }
 
-    setCurrentStep((step) => Math.min(10, step + 1));
+    setCurrentStep((step) => Math.min(TOTAL_STEPS, step + 1));
   };
 
   if (submitted) {
@@ -273,7 +256,7 @@ export function ClientWizard({
       }
       onBack={currentStep > 1 ? handleBack : undefined}
       onNext={handleNext}
-      nextLabel={currentStep === 10 ? "Submit and Process" : "Continue"}
+      nextLabel={currentStep === TOTAL_STEPS ? "Submit and Process" : "Continue"}
     >
       {stepError ? (
         <Card className="border-amber-300 bg-amber-50">
@@ -375,15 +358,12 @@ export function ClientWizard({
             <MapPin className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-slate-800 tracking-tight">Location Strategy</span>
           </div>
-          <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 text-sm text-slate-700 leading-relaxed">
-            <span className="font-bold flex items-center gap-1.5 mb-0.5">
-              <Lightbulb className="h-3.5 w-3.5 text-primary" /> Recommendation:
-            </span>
-            {session.proposal.geoTarget.recommendation}
-          </div>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <p className="text-sm font-bold text-slate-700">Preferred areas</p>
+          <div className="space-y-4">
+            {/* Ajuste #2 — Bloque superior: Target seleccionado por el cliente */}
+            <div className="space-y-2 rounded-xl border bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Target (Selected by client)
+              </p>
               <GeoTargetSelector
                 locations={session.proposal.geoTarget.visibleLocations}
                 selected={values.geoTarget.preferredLocations}
@@ -398,6 +378,13 @@ export function ClientWizard({
                   });
                 }}
               />
+            </div>
+            {/* Ajuste #2 — Bloque inferior: recomendación de XMS */}
+            <div className="rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm text-slate-700 leading-relaxed">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1.5">
+                <Lightbulb className="h-3.5 w-3.5" /> Geo target recommendation by XMS
+              </p>
+              <p>{session.proposal.geoTarget.recommendation}</p>
             </div>
             <DecisionCardGroup
               decision={values.geoTarget.decision}
@@ -414,44 +401,50 @@ export function ClientWizard({
       ) : null}
 
       {currentStep === 5 ? (
-        <CompactStepCard title="Photos & Assets" description="Upload or simulate required files.">
+        <CompactStepCard title="Photos & Assets" description="Upload your logo and business photos.">
           <div className="flex items-center gap-2 mb-2">
             <Camera className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-slate-800 tracking-tight">Brand Identity</span>
           </div>
-          <div className="space-y-3">
-            {session.proposal.assetRequirements.map((item) => (
-              <div key={item.id} className="rounded-xl border bg-white p-3 shadow-sm hover:border-slate-300 transition-all">
-                <p className="text-sm font-bold text-slate-800">{item.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{item.instructions}</p>
-                <p className="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">
-                  {item.acceptedFileTypes.join(", ")} · Max {item.maxSizeMb} MB · Min {item.minResolution}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="space-y-4 pt-4">
-            <UploadDropzoneOrInput
-              label="Upload logo"
-              helper="SVG or PNG with transparent background preferred"
-              onFiles={(files) =>
-                setValue("assets.logoFileName", files[0] || "", {
-                  shouldDirty: true,
-                  shouldValidate: true
-                })
-              }
-            />
-            <UploadDropzoneOrInput
-              label="Upload business photos"
-              helper="Interior, exterior, projects, or team"
-              multiple
-              onFiles={(files) =>
-                setValue("assets.photos", files, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                })
-              }
-            />
+          <div className="space-y-4">
+            {/* Ajuste #3 — Description for company logo */}
+            <div className="rounded-xl border bg-white p-3 shadow-sm">
+              <p className="text-sm font-bold text-slate-800">Company logo</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                Upload your current logo in high quality for branding consistency.
+              </p>
+              <UploadDropzoneOrInput
+                label="Upload logo"
+                helper="SVG or PNG with transparent background preferred"
+                onFiles={(files) =>
+                  setValue("assets.logoFileName", files[0] || "", {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  })
+                }
+              />
+            </div>
+            {/* Ajustes #4 + #5 — Description y requirements para business & work photos */}
+            <div className="rounded-xl border bg-white p-3 shadow-sm">
+              <p className="text-sm font-bold text-slate-800">Business &amp; work photos</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                Please send us images that reflect your services, ongoing work, and business.
+              </p>
+              <p className="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">
+                Photo requirements: JPEG, PNG, BMP or ICO · Min 640×640 px · Max 10 MB
+              </p>
+              <UploadDropzoneOrInput
+                label="Upload business photos"
+                helper="Interior, exterior, projects, or team"
+                multiple
+                onFiles={(files) =>
+                  setValue("assets.photos", files, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  })
+                }
+              />
+            </div>
           </div>
         </CompactStepCard>
       ) : null}
@@ -504,13 +497,82 @@ export function ClientWizard({
         </CompactStepCard>
       ) : null}
 
+      {/* Ajuste #9 — NUEVA VENTANA: Team Information (fieldworkers).
+          Antes la pregunta vivía dentro de un missing-info-form en el paso 9 junto con
+          otros campos duplicados. Ahora es una ventana dedicada y la única vez que se pregunta. */}
       {currentStep === 8 ? (
-        <CompactStepCard title="Ads Preview" description="Preview of how your business will appear in search results.">
+        <CompactStepCard
+          title="Team Information"
+          description="Tell us about your active field service team."
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-slate-800 tracking-tight">Field Team</span>
+          </div>
+          <div className="rounded-xl border bg-white p-4 shadow-sm space-y-2">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0 fill-primary/15" />
+              <div className="flex-1">
+                <Label
+                  htmlFor="fieldworkers"
+                  className="text-sm font-bold text-slate-900"
+                >
+                  Total number of fieldworkers
+                  <span className="text-destructive"> *</span>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  How many team members are active in field service.
+                </p>
+              </div>
+            </div>
+            <input
+              id="fieldworkers"
+              type="number"
+              min={1}
+              inputMode="numeric"
+              placeholder="Ex: 8"
+              value={String(
+                values.missingInfoResponses?.totalFieldworkers ?? ""
+              )}
+              onChange={(event) =>
+                setValue(
+                  "missingInfoResponses",
+                  {
+                    ...(values.missingInfoResponses || {}),
+                    totalFieldworkers: Number(event.target.value) || 0
+                  },
+                  { shouldDirty: true, shouldValidate: true }
+                )
+              }
+              className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+        </CompactStepCard>
+      ) : null}
+
+      {currentStep === 9 ? (
+        <CompactStepCard title="Ads Preview" description="Preview of how your business will appear in Google LSA.">
           <div className="flex items-center gap-2 mb-2">
             <Megaphone className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-slate-800 tracking-tight">Visual Identity</span>
           </div>
-          <AdsPreviewCard note={session.proposal.adsPreviewNote} />
+          {/* Ajuste #6 — Ad preview con formato real de Google LSA.
+              Datos derivados de la sesión + selección del cliente. */}
+          <AdsPreviewCard
+            note={session.proposal.adsPreviewNote}
+            businessName={client.name}
+            service={session.proposal.services.selected[0]}
+            location={
+              values.geoTarget.preferredLocations[0] ||
+              session.proposal.geoTarget.visibleLocations[0]
+            }
+            phoneNumber={client.contactPhone || "(555) 555-0100"}
+            bioDescription={
+              session.proposal.businessBioOptions.find(
+                (option) => option.id === values.businessBioSelection[0]
+              )?.label
+            }
+          />
           <div className="grid gap-2 mt-6">
             <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Feedback or changes</Label>
             <Textarea
@@ -528,52 +590,31 @@ export function ClientWizard({
         </CompactStepCard>
       ) : null}
 
-      {currentStep === 9 ? (
-        <CompactStepCard title="Final Checklist" description="Review recommendations and provide missing information.">
+      {currentStep === 10 ? (
+        <CompactStepCard title="SEM Team Recommendations" description="Review the recommendations from our SEM team.">
           <div className="flex items-center gap-2 mb-2">
             <ClipboardCheck className="h-4 w-4 text-primary" />
-            <span className="text-sm font-bold text-slate-800 tracking-tight">Pending Items</span>
+            <span className="text-sm font-bold text-slate-800 tracking-tight">SEM Team Notes</span>
           </div>
+          {/* Ajuste #7 — Solo recomendaciones del SEM team. Se removieron MissingInfoForm y final comment
+              porque la información ya se solicita en pasos anteriores (eliminada repetición). */}
           <div className="space-y-4">
             <div className="space-y-2 rounded-xl border border-secondary bg-secondary/20 p-4">
               <p className="text-sm font-bold text-slate-800">SEM Team Recommendations</p>
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {session.proposal.recommendations.map((item) => (
-                  <li key={item} className="flex gap-2 text-xs text-slate-600">
-                    <span className="text-primary font-bold">•</span>
-                    {item}
+                  <li key={item} className="flex gap-2 text-xs text-slate-700 leading-relaxed">
+                    <span className="text-primary font-bold mt-0.5">•</span>
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-            <MissingInfoForm
-              items={session.proposal.missingInfoChecklist}
-              values={values.missingInfoResponses}
-              acknowledged={values.acknowledgedMissingItems}
-              onValueChange={(id, value) => {
-                setValue(
-                  "missingInfoResponses",
-                  { ...values.missingInfoResponses, [id]: value },
-                  { shouldDirty: true, shouldValidate: true }
-                );
-              }}
-              onAcknowledgedChange={(items) =>
-                setValue("acknowledgedMissingItems", items, { shouldDirty: true, shouldValidate: true })
-              }
-            />
-            <div className="grid gap-2 pt-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Final comments</Label>
-              <Textarea
-                placeholder="Anything else we should know?"
-                {...register("finalComment")}
-                className="bg-white"
-              />
             </div>
           </div>
         </CompactStepCard>
       ) : null}
 
-      {currentStep === 10 ? (
+      {currentStep === 11 ? (
         <CompactStepCard title="Review & Submit" description="Verify all sections before finalizing.">
           <div className="flex items-center gap-2 mb-2">
             <Flag className="h-4 w-4 text-primary" />
@@ -604,6 +645,9 @@ export function ClientWizard({
                   )}
                   {section.id === "bio" && (
                     <p className="font-medium text-slate-700">Selection: <span className="text-primary font-bold">{values.businessBioSelection.length} categories</span></p>
+                  )}
+                  {section.id === "team" && (
+                    <p className="font-medium text-slate-700">Fieldworkers: <span className="text-primary font-bold">{String(values.missingInfoResponses?.totalFieldworkers ?? "—")}</span></p>
                   )}
                   {section.id === "ads" && (
                     <p className="font-medium text-slate-700">Feedback: <span className="text-primary font-bold">{values.adsPreviewComment ? "Provided" : "None"}</span></p>

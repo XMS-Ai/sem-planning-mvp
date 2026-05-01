@@ -8,6 +8,7 @@ export type ProposalSection =
   | "assets"
   | "hours"
   | "bio"
+  | "team"
   | "ads"
   | "recommendations"
   | "review";
@@ -17,6 +18,8 @@ export interface Client {
   name: string;
   slug: string;
   logoUrl?: string;
+  // Ajuste #6 — Teléfono mostrado en el Ad Preview tipo Google LSA
+  contactPhone?: string;
 }
 
 export interface KpiBlock {

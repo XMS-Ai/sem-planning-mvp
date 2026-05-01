@@ -5,6 +5,7 @@ export const seededClients: Client[] = [
     id: "client_gutter_guardians",
     name: "Gutter Guardians",
     slug: "gutter-guardians",
+    contactPhone: "561-543-6994",
     logoUrl:
       "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=400&q=80"
   }
